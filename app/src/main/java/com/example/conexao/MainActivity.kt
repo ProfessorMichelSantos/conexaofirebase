@@ -1,6 +1,7 @@
 package com.example.conexao
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -13,11 +14,12 @@ import androidx.core.view.isVisible
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
-    private var email : String = "michels@live.com"
+    private var email : String = "michels@live.com.br"
     private var password : String = "123@teste"
 
 
@@ -35,6 +37,8 @@ class MainActivity : AppCompatActivity() {
         val botaocriar : Button = findViewById<Button>(R.id.btninsert)
         val botaoesqueci : Button = findViewById<Button>(R.id.btnEsqueci)
         val botaologin : Button = findViewById<Button>(R.id.btnlogin)
+        val botaoinserefirebase : Button = findViewById<Button>(R.id.btninserefirebase)
+        val botaolerfirebase : Button = findViewById<Button>(R.id.ler)
 
         botaocriar.setOnClickListener()
         {
@@ -49,6 +53,16 @@ class MainActivity : AppCompatActivity() {
         botaologin.setOnClickListener()
         {
             login()
+        }
+
+        botaoinserefirebase.setOnClickListener()
+        {
+            inseredados("Michel","Rua X")
+
+        }
+        botaolerfirebase.setOnClickListener()
+        {
+            ler()
         }
     }
 
@@ -88,10 +102,71 @@ class MainActivity : AppCompatActivity() {
         auth.sendPasswordResetEmail(email)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    txtcaixa.text = "Gravado"
+                    txtcaixa.text = "Enviado"
                 } else {
                     txtcaixa.text = "Erro"
                 }
             }
     }
+
+    private fun inseredados(nome : String, endereco : String)
+    {
+        auth = FirebaseAuth.getInstance()
+        val usuarioAtual = auth.currentUser
+
+        if (usuarioAtual != null) {
+            val uid = usuarioAtual.uid
+            val db = FirebaseFirestore.getInstance()
+
+            val usuario = Usuario(
+                nome = nome,
+                endereco = endereco,
+                criadoem = System.currentTimeMillis().toString()
+            )
+
+            // Grava os dados no documento com o UID do usuário
+            db.collection("usuarios").document(uid).set(usuario)
+                .addOnSuccessListener {
+                    Log.d("Firebase", "Usuário salvo com sucesso!")
+                }
+                .addOnFailureListener { e ->
+                    Log.e("Firebase", "Erro ao salvar usuário", e)
+                }
+        } else {
+            Log.w("Firebase", "Usuário não está autenticado")
+        }
+
+    }
+
+    private fun ler()
+    {
+
+        val auth = FirebaseAuth.getInstance()
+        val usuarioAtual = auth.currentUser
+
+        if (usuarioAtual != null) {
+            val db = FirebaseFirestore.getInstance()
+
+            db.collection("usuarios").get()
+                .addOnSuccessListener { result ->
+                    for (document in result) {
+                        val nome = document.getString("nome")
+                        val endereco = document.getString("endereco")
+                        val criadoem = document.getString("criadoem")
+
+                        Log.d("Firebase", "Usuário: ${document.id}")
+                        Log.d("Firebase", "Nome: $nome")
+                        Log.d("Firebase", "Endereço: $endereco")
+                        Log.d("Firebase", "Criado em: $criadoem")
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Log.e("Firebase", "Erro ao ler usuários", e)
+                }
+        } else {
+            Log.w("Firebase", "Usuário não está autenticado")
+        }
+
+    }
+
 }
