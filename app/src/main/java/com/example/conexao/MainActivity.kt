@@ -140,33 +140,33 @@ class MainActivity : AppCompatActivity() {
 
     private fun ler()
     {
-
         val auth = FirebaseAuth.getInstance()
         val usuarioAtual = auth.currentUser
 
         if (usuarioAtual != null) {
+            val uid = usuarioAtual.uid
             val db = FirebaseFirestore.getInstance()
 
-            db.collection("usuarios").get()
-                .addOnSuccessListener { result ->
-                    for (document in result) {
+            db.collection("usuarios").document(uid).get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
                         val nome = document.getString("nome")
                         val endereco = document.getString("endereco")
                         val criadoem = document.getString("criadoem")
 
-                        Log.d("Firebase", "Usuário: ${document.id}")
                         Log.d("Firebase", "Nome: $nome")
                         Log.d("Firebase", "Endereço: $endereco")
                         Log.d("Firebase", "Criado em: $criadoem")
+                    } else {
+                        Log.w("Firebase", "Documento não encontrado")
                     }
                 }
                 .addOnFailureListener { e ->
-                    Log.e("Firebase", "Erro ao ler usuários", e)
+                    Log.e("Firebase", "Erro ao ler documento", e)
                 }
         } else {
             Log.w("Firebase", "Usuário não está autenticado")
         }
 
     }
-
 }
