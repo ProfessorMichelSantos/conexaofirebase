@@ -1,4 +1,6 @@
-auth = FirebaseAuth.getInstance()
+private fun inseredados(nome : String, endereco : String)
+    {
+        auth = FirebaseAuth.getInstance()
         val usuarioAtual = auth.currentUser
 
         if (usuarioAtual != null) {
