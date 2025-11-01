@@ -1,28 +1,23 @@
-    private fun ler()
-    {
-        val auth = FirebaseAuth.getInstance()
+auth = FirebaseAuth.getInstance()
         val usuarioAtual = auth.currentUser
 
         if (usuarioAtual != null) {
             val uid = usuarioAtual.uid
             val db = FirebaseFirestore.getInstance()
 
-            db.collection("usuarios").document(uid).get()
-                .addOnSuccessListener { document ->
-                    if (document.exists()) {
-                        val nome = document.getString("nome")
-                        val endereco = document.getString("endereco")
-                        val criadoem = document.getString("criadoem")
+            val usuario = Usuario(
+                nome = nome,
+                endereco = endereco,
+                criadoem = System.currentTimeMillis().toString()
+            )
 
-                        Log.d("Firebase", "Nome: $nome")
-                        Log.d("Firebase", "Endereço: $endereco")
-                        Log.d("Firebase", "Criado em: $criadoem")
-                    } else {
-                        Log.w("Firebase", "Documento não encontrado")
-                    }
+            // Grava os dados no documento com o UID do usuário
+            db.collection("usuarios").document(uid).set(usuario)
+                .addOnSuccessListener {
+                    Log.d("Firebase", "Usuário salvo com sucesso!")
                 }
                 .addOnFailureListener { e ->
-                    Log.e("Firebase", "Erro ao ler documento", e)
+                    Log.e("Firebase", "Erro ao salvar usuário", e)
                 }
         } else {
             Log.w("Firebase", "Usuário não está autenticado")
